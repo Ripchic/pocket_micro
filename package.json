@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "prompt-sunc" : "latest"
+  },
+  "type": "module"
+}
