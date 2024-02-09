@@ -6,6 +6,8 @@ export class NashTable {
         this.x = x;
         this.y = y;
         this.table = Array(x).fill().map(() => Array(y).fill().map(() => ['', '']));
+        this.valid_x = Array(x).fill().map(() => 0);
+        this.valid_y = Array(y).fill().map(() => 0);
     }
 
     clear() {
