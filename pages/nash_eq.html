@@ -2,11 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Nash equilibrium</title>
-    <script type="module" src="../browser/nash_web.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nash Equilibrium Table Generator</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 5px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
-<h1>Nash equilibrium in progress</h1>
-<canvas id='canvas' width="300" height="500"></canvas>
+<h2>Nash Equilibrium</h2>
+<div>
+    <h3>Enter the number of available strategies for players:</h3>
+    <label for="player1Strategies">Player 1:</label>
+    <input type="number" id="player1Strategies" name="player1Strategies" min="1" required value="1">
+    <label for="player2Strategies">Player 2:</label>
+    <input type="number" id="player2Strategies" name="player2Strategies" min="1" required value="1">
+    <input type="button" value="Generate Table" id="generateTable">
+</div>
+
+<div id="tableInput"></div>
+<div><input type="button" value="RUN" id="runNash"></div>
+<div id="tableContainer"></div>
+
+<!--script goes to the end in order to load the page firstly-->
+<script type="module" src="../browser/nash_web.js"></script>
 </body>
 </html>
