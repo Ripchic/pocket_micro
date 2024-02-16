@@ -98,10 +98,42 @@ class Nash_browser_game {
     async find_and_mark_nash_equilibrium() {
         console.log('find_and_mark_nash_equilibrium');
 
+        for (let col = 0; col < this.nash_game.y; col++) {
+            let max_values = this.read_cell(0, col);
+            let max_ids = [0];
+            for (let row = 0; row < this.nash_game.x; row++) {
+                console.log(`row: ${row}, col: ${col},`);
+                const values = this.read_cell(row, col);
+                if (values[0] > max_values[0]) {
+                    max_values[0] = values[0];
+                    max_ids = [row];
+                } else if (values[0] === max_values[0]) {
+                    max_ids.push(row);
+                }
+                const cell = document.getElementById(`cell-${row}-${col}-0`);
+                cell.style.backgroundColor = 'grey';
+                await this.sleep(500);
+            }
+
+            for (let j of max_ids) {
+                const cell = document.getElementById(`cell-${j}-${col}-0`);
+                cell.style.backgroundColor = 'yellow';
+                this.nash_game.optimal_choice[j][col][0] = 1;
+                await this.sleep(500);
+            }
+            for (let j = 0; j < this.nash_game.x; j++) {
+                if (!max_ids.includes(j)) {
+                    const cell = document.getElementById(`cell-${j}-${col}-0`);
+                    cell.style.backgroundColor = 'white';
+                }
+            }
+        }
+
         for (let i = 0; i < this.nash_game.x; i++) {
             let max_values = this.read_cell(i, 0);
             let max_ids = [0];
             for (let j = 0; j < this.nash_game.y; j++) {
+                console.log(`row: ${i}, col: ${j},`);
                 const values = this.read_cell(i, j);
                 if (values[1] > max_values[1]) {
                     max_values[1] = values[1];
@@ -111,11 +143,11 @@ class Nash_browser_game {
                 }
                 const cell = document.getElementById(`cell-${i}-${j}-1`);
                 cell.style.backgroundColor = 'grey';
-                await this.sleep(300);
+                await this.sleep(500);
             }
             for (let j of max_ids) {
                 const cell = document.getElementById(`cell-${i}-${j}-1`);
-                cell.style.backgroundColor = 'green';
+                cell.style.backgroundColor = '#00b4ff';
                 this.nash_game.optimal_choice[i][j][1] = 1;
                 await this.sleep(500);
             }
@@ -126,33 +158,27 @@ class Nash_browser_game {
                 }
             }
         }
+    }
 
-        for (let i = 0; i < this.nash_game.y; i++) {
-            let max_values = this.read_cell(i, 0);
-            let max_ids = [0];
-            for (let j = 0; j < this.nash_game.x; j++) {
-                const values = this.read_cell(i, j);
-                if (values[0] > max_values[0]) {
-                    max_values[0] = values[0];
-                    max_ids = [j];
-                } else if (values[0] === max_values[0]) {
-                    max_ids.push(j);
-                }
-                const cell = document.getElementById(`cell-${j}-${i}-0`);
-                cell.style.backgroundColor = 'grey';
-                await this.sleep(300);
+    print_optimal() {
+        for (let i = 0; i < this.nash_game.x; i++) {
+            let line = '';
+            for (let j = 0; j < this.nash_game.y; j++) {
+                line += this.nash_game.optimal_choice[i][j][0] + ',' + this.nash_game.optimal_choice[i][j][1] + ' ';
             }
+            console.log(line);
+        }
+    }
 
-            for (let j of max_ids) {
-                const cell = document.getElementById(`cell-${j}-${i}-0`);
-                cell.style.backgroundColor = 'green';
-                this.nash_game.optimal_choice[i][j][1] = 1;
-                await this.sleep(500);
-            }
-            for (let j = 0; j < this.nash_game.x; j++) {
-                if (!max_ids.includes(j)) {
-                    const cell = document.getElementById(`cell-${j}-${i}-0`);
-                    cell.style.backgroundColor = 'white';
+    mark_nash() {
+        for (let i = 0; i < this.nash_game.x; i++) {
+            for (let j = 0; j < this.nash_game.y; j++) {
+                if (this.nash_game.optimal_choice[i][j][0] === 1 && this.nash_game.optimal_choice[i][j][1] === 1) {
+                    this.nash_game.valid_x[i] = 1;
+                    this.nash_game.valid_y[j] = 1;
+                    document.getElementById(`cell-${i}-${j}-0`).style.backgroundColor = 'green';
+                    document.getElementById(`cell-${i}-${j}-1`).style.backgroundColor = 'green';
+
                 }
             }
         }
@@ -174,7 +200,9 @@ document.getElementById("generateTable").addEventListener("click", () => {
     game.generate_table(x, y);
 });
 
-document.getElementById("runNash").addEventListener("click", () => {
+document.getElementById("runNash").addEventListener("click", async () => {
     game.generate_results_table();
-    game.find_and_mark_nash_equilibrium();
+    await game.find_and_mark_nash_equilibrium();
+    game.print_optimal();
+    game.mark_nash();
 });

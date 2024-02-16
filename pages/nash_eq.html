@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css" type="text/css">
     <title>Nash Equilibrium Table Generator</title>
     <style>
         table, th, td {
@@ -17,16 +18,28 @@
     </style>
 </head>
 <body>
-<h2>Nash Equilibrium</h2>
+<!--HEADER-->
+<header>
+    <div>
+        <a href="index.html">
+            <img src="../images/logotip.png" alt="PocketMicro logo" width="100" height="100"
+                 style="position: absolute; top: 8px; left: 10px;">
+        </a>
+        <h1>PocketMicro</h1>
+        <h3>A tool for visualising microeconomics concepts</h3>
+    </div>
+</header>
+
+<!--MAIN CONTENT-->
+<h2 style = 'margin-bottom: 20px'>Nash Equilibrium</h2>
 <div>
-    <h3>Enter the number of available strategies for players:</h3>
+    <h3 style = 'margin-bottom: 20px'>Enter the number of available strategies for players:</h3>
     <label for="player1Strategies">Player 1:</label>
     <input type="number" id="player1Strategies" name="player1Strategies" min="1" required value="1">
     <label for="player2Strategies">Player 2:</label>
     <input type="number" id="player2Strategies" name="player2Strategies" min="1" required value="1">
-    <input type="button" value="Generate Table" id="generateTable">
 </div>
-
+<div><input type="button" value="Generate Table" id="generateTable"></div>
 <div id="tableInput"></div>
 <div><input type="button" value="RUN" id="runNash"></div>
 <div id="tableContainer"></div>
