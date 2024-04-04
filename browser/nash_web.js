@@ -5,9 +5,47 @@ class Nash_browser_game {
         this.tableInput = tableInput;
         this.tableContainer = tableContainer;
         this.nash_game = new NashTable(x, y);
+        this.steps = [];
+        this.maxSteps = 0;
+        this.isPaused = false;
+        this.currentStep = 0;
+
+        // Button event listeners
+        this.setupButtonListeners();
         console.log("constructor");
     }
 
+    setupButtonListeners() {
+        document.getElementById('previous').addEventListener('click', () => this.previousStep());
+        document.getElementById('next').addEventListener('click', () => this.nextStep());
+        document.getElementById('play').addEventListener('click', () => this.toggleStartPause());
+        slider.oninput = (event) => {
+        this.currentStep = parseInt(event.target.value);
+        this.calculateMidTable();
+        this.document.getElementById("sliderValue").innerHTML = this.currentStep;
+    };
+    }
+
+    calculateMidTable(){
+        let tempTable = Array(this.nash_game.x).fill().map(() => Array(this.nash_gamey).fill().map(() => [0, 0]));
+        let tempStep = 0;
+        while (tempStep != this.currentStep){
+            const step = this.steps[tempStep];
+            tempTable[step.row][step.col][step.id] = step.color;
+            tempStep++;
+        }
+        
+        for (let i = 0; i < this.nash_game.x; i++) {
+            for (let j = 0; j < this.nash_game.y; j++) {
+                const cell1 = document.getElementById(`cell-${i}-${j}-0`);
+                cell1.style.backgroundColor = this.getColor(tempTable[i][j][0]);
+                const cell2 = document.getElementById(`cell-${i}-${j}-1`);
+                cell2.style.backgroundColor = this.getColor(tempTable[i][j][1]);
+            }
+        }
+    }
+
+    // generate table to input user data based on the number of strategies of each player
     generate_table(x, y) {
         console.log("generate_table");
         if (isNaN(x) || isNaN(y) || x < 1 || y < 1) {
@@ -40,6 +78,7 @@ class Nash_browser_game {
         this.tableInput.appendChild(table);
     }
 
+    // read cell from the table and return an array with the two values
     read_cell(i, j) {
         let str = document.getElementById(`cell-${i}-${j}`).value;
         if (str.includes('/')) {
@@ -57,6 +96,7 @@ class Nash_browser_game {
         }
     }
 
+    // generate the results table with the values from the input table
     generate_results_table() {
         console.log('generate_results_table');
         this.tableContainer.innerHTML = '';
@@ -95,40 +135,46 @@ class Nash_browser_game {
         this.tableContainer.appendChild(table);
     }
 
-    async find_and_mark_nash_equilibrium() {
-        console.log('find_and_mark_nash_equilibrium');
 
+    // calculate stes aka the color of each cell
+    // 0 = white, 1 = grey, 2 = yellow, 3 = blue, 4 = green
+    caculate_steps() {
+        console.log('caculate_steps');
+        this.steps = [];
         for (let col = 0; col < this.nash_game.y; col++) {
-            let max_values = this.read_cell(0, col);
-            let max_ids = [0];
-            for (let row = 0; row < this.nash_game.x; row++) {
-                console.log(`row: ${row}, col: ${col},`);
-                const values = this.read_cell(row, col);
-                if (values[0] > max_values[0]) {
-                    max_values[0] = values[0];
-                    max_ids = [row];
-                } else if (values[0] === max_values[0]) {
-                    max_ids.push(row);
+                let max_values = this.read_cell(0, col);
+                let max_ids = [0];
+                for (let row = 0; row < this.nash_game.x; row++) {
+                    console.log(`row: ${row}, col: ${col},`);
+                    const values = this.read_cell(row, col);
+                    if (values[0] > max_values[0]) {
+                        max_values[0] = values[0];
+                        max_ids = [row];
+                    } else if (values[0] === max_values[0]) {
+                        max_ids.push(row);
+                    }
+                    // const cell = document.getElementById(`cell-${row}-${col}-0`);
+                    // cell.style.backgroundColor = 'grey';
+                    this.steps.push({row: row, col: col, id:0, color: 1});
+                
                 }
-                const cell = document.getElementById(`cell-${row}-${col}-0`);
-                cell.style.backgroundColor = 'grey';
-                await this.sleep(500);
-            }
-
-            for (let j of max_ids) {
-                const cell = document.getElementById(`cell-${j}-${col}-0`);
-                cell.style.backgroundColor = 'yellow';
-                this.nash_game.optimal_choice[j][col][0] = 1;
-                await this.sleep(500);
-            }
-            for (let j = 0; j < this.nash_game.x; j++) {
-                if (!max_ids.includes(j)) {
-                    const cell = document.getElementById(`cell-${j}-${col}-0`);
-                    cell.style.backgroundColor = 'white';
+    
+                for (let j of max_ids) {
+                    // const cell = document.getElementById(`cell-${j}-${col}-0`);
+                    // cell.style.backgroundColor = 'yellow';
+                    this.steps.push({row: j, col: col, id:0, color: 2});
+                    this.nash_game.optimal_choice[j][col][0] = 1;
+                    
+                }
+                for (let j = 0; j < this.nash_game.x; j++) {
+                    if (!max_ids.includes(j)) {
+                        // const cell = document.getElementById(`cell-${j}-${col}-0`);
+                        // cell.style.backgroundColor = 'white';
+                        this.steps.push({row: j, col: col, id:0, color: 0});
+                    }
                 }
             }
-        }
-
+    
         for (let i = 0; i < this.nash_game.x; i++) {
             let max_values = this.read_cell(i, 0);
             let max_ids = [0];
@@ -141,25 +187,108 @@ class Nash_browser_game {
                 } else if (values[1] === max_values[1]) {
                     max_ids.push(j);
                 }
-                const cell = document.getElementById(`cell-${i}-${j}-1`);
-                cell.style.backgroundColor = 'grey';
-                await this.sleep(500);
+                // const cell = document.getElementById(`cell-${i}-${j}-1`);
+                // cell.style.backgroundColor = 'grey';
+                this.steps.push({row: i, col: j, id:1, color: 1});
+                
             }
             for (let j of max_ids) {
-                const cell = document.getElementById(`cell-${i}-${j}-1`);
-                cell.style.backgroundColor = '#00b4ff';
+                // const cell = document.getElementById(`cell-${i}-${j}-1`);
+                // cell.style.backgroundColor = '#00b4ff';
+                this.steps.push({row: i, col: j, id:1, color: 3});
                 this.nash_game.optimal_choice[i][j][1] = 1;
-                await this.sleep(500);
+                
             }
             for (let j = 0; j < this.nash_game.y; j++) {
                 if (!max_ids.includes(j)) {
-                    const cell = document.getElementById(`cell-${i}-${j}-1`);
-                    cell.style.backgroundColor = 'white';
+                    // const cell = document.getElementById(`cell-${i}-${j}-1`);
+                    // cell.style.backgroundColor = 'white';
+                    this.steps.push({row: i, col: j, id:1, color: 0});
+                }
+            }
+        }
+
+        for (let i = 0; i < this.nash_game.x; i++) {
+            for (let j = 0; j < this.nash_game.y; j++) {
+                if (this.nash_game.optimal_choice[i][j][0] === 1 && this.nash_game.optimal_choice[i][j][1] === 1) {
+                    this.nash_game.valid_x[i] = 1;
+                    this.nash_game.valid_y[j] = 1;
+                    this.steps.push({row: i, col: j, id:0, color: 4});
+                    this.steps.push({row: i, col: j, id:1, color: 4});
                 }
             }
         }
     }
 
+    // Update data according to the number of steps
+    update_data() {
+        this.maxSteps = this.steps.length;
+        this.currentStep = 0;
+        let slider = document.getElementById('slider');
+        slider.max = this.maxSteps;
+        slider.value = this.currentStep;
+}
+
+
+    // iterate over the steps
+    async iterateSteps() {
+        while (this.currentStep <= this.maxSteps && !this.isPaused) {
+            this.currentStep++;
+            await this.updateStep();
+        }
+    }
+
+    // toggle between start and pause
+    toggleStartPause() {
+        this.isPaused = !this.isPaused;
+        if (!this.isPaused) {
+            this.iterateSteps();
+        }
+    }
+
+    // go to the next step
+    nextStep() {
+        if (this.currentStep < this.maxSteps) {
+            this.currentStep++;
+            this.calculateMidTable();
+        }
+    }
+
+    // go to the previous step
+    previousStep() {
+        if (this.currentStep > 0) {
+            this.currentStep--;
+            this.calculateMidTable();
+        }
+    }
+
+    // update the step
+    async updateStep() {
+        const step = this.steps[this.currentStep];
+        const cell = document.getElementById(`cell-${step.row}-${step.col}-${step.id}`);
+        cell.style.backgroundColor = this.getColor(step.color);
+        document.getElementById("sliderValue").innerHTML = this.currentStep;
+        document.getElementById("slider").value = this.currentStep;
+        await this.sleep(500);
+    }
+
+    // get the color based on the number
+    getColor(color) {
+        switch (color) {
+            case 0:
+                return 'white';
+            case 1:
+                return 'grey';
+            case 2:
+                return 'yellow';
+            case 3:
+                return '#00b4ff';
+            case 4:
+                return 'green';
+        }
+    }
+
+    // print the optimal choices
     print_optimal() {
         for (let i = 0; i < this.nash_game.x; i++) {
             let line = '';
@@ -201,8 +330,11 @@ document.getElementById("generateTable").addEventListener("click", () => {
 });
 
 document.getElementById("runNash").addEventListener("click", async () => {
-    game.generate_results_table();
-    await game.find_and_mark_nash_equilibrium();
-    game.print_optimal();
-    game.mark_nash();
+    game.generate_results_table(); // output table
+    game.caculate_steps(); // define color of table for each step
+    game.update_data(); // update all data according to the calculated steps
+    console.log("start iteration")
+    await game.iterateSteps(); // run the animation
+    // game.mark_nash();
+    // game.print_optimal(); // console debug
 });

@@ -39,10 +39,30 @@
     <label for="player2Strategies">Player 2:</label>
     <input type="number" id="player2Strategies" name="player2Strategies" min="1" required value="1">
 </div>
+
+<div id="presets">
+    <h3>Select a Preset:</h3>
+    <button id="preset1">Example 1</button>
+    <button id="preset2">Example 2</button>
+</div>
+
+
 <div><input type="button" value="Generate Table" id="generateTable"></div>
 <div id="tableInput"></div>
-<div><input type="button" value="RUN" id="runNash"></div>
+
 <div id="tableContainer"></div>
+
+<div><input type="button" value="RUN" id="runNash"></div>
+<div>
+    <div><input tupe="button" value="Stop/Resume" id="play"></div>
+    <div><input tupe="button" value="Previous" id="previous"></div>
+    <div><input tupe="button" value="Next" id="next"></div>
+</div>
+<div>
+    <input type="range" min="0" max="0" value="0" id="slider">
+    <span id="sliderValue"></span>
+</div>
+
 
 <!--script goes to the end in order to load the page firstly-->
 <script type="module" src="../browser/nash_web.js"></script>
