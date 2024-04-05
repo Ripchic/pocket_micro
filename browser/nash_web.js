@@ -1,5 +1,16 @@
 import {NashTable} from '../scripts/nash_table.js';
 
+const presets = {
+    preset1: [
+        [[3, 2], [1, 4]],
+        [[2, 2], [4, 1]]
+    ],
+    preset2: [
+        [[2, 2], [0, 3]],
+        [[3, 1], [1, 1]]
+    ]
+};
+
 class Nash_browser_game {
     constructor(x, y, tableInput, tableContainer) {
         this.tableInput = tableInput;
@@ -23,6 +34,7 @@ class Nash_browser_game {
         this.currentStep = parseInt(event.target.value);
         this.calculateMidTable();
         this.document.getElementById("sliderValue").innerHTML = this.currentStep;
+        
     };
     }
 
@@ -317,6 +329,14 @@ class Nash_browser_game {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    loadPresetInput(preset) {
+        for (let i = 0; i < preset.length; i++) {
+            for (let j = 0; j < preset[0].length; j++) {
+                const values = preset[i][j];
+                document.getElementById(`cell-${i}-${j}`).value = `${values[0]}/${values[1]}`;
+            }
+        }
+    }
 }
 
 let game = NaN;
@@ -335,6 +355,28 @@ document.getElementById("runNash").addEventListener("click", async () => {
     game.update_data(); // update all data according to the calculated steps
     console.log("start iteration")
     await game.iterateSteps(); // run the animation
-    // game.mark_nash();
-    // game.print_optimal(); // console debug
+});
+
+document.getElementById('preset1').addEventListener('click', () => {
+    let x = presets.preset1.length;
+    let y = presets.preset1[0].length;
+    document.getElementById('player1Strategies').value = x;
+    document.getElementById('player2Strategies').value = y;
+    let tableInput = document.getElementById('tableInput');
+    let tableContainer = document.getElementById('tableContainer');
+    game = new Nash_browser_game(x, y, tableInput, tableContainer);
+    game.generate_table(x, y);
+    game.loadPresetInput(presets.preset1);
+});
+
+document.getElementById('preset2').addEventListener('click', () => {
+    let x = presets.preset2.length;
+    let y = presets.preset2[0].length;
+    document.getElementById('player1Strategies').value = x;
+    document.getElementById('player2Strategies').value = y;
+    let tableInput = document.getElementById('tableInput');
+    let tableContainer = document.getElementById('tableContainer');
+    game = new Nash_browser_game(x, y, tableInput, tableContainer);
+    game.generate_table(x, y);
+    game.loadPresetInput(presets.preset2);
 });
