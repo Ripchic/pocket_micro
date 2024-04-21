@@ -9,6 +9,15 @@ const presets = {
         [[2, 2], [0, 3]],
         [[3, 1], [1, 1]]
     ]
+    ,
+    preset3: [
+        [[3, 3], [1, 1]],
+        [[1, 1], [2, 2]]
+    ],
+    preset4: [
+        [[1, 3], [5, 3]],
+        [[1, 8], [5, 8]]
+    ],
 };
 
 class Nash_browser_game {
@@ -21,6 +30,9 @@ class Nash_browser_game {
         this.isPaused = false;
         this.currentStep = 0;
 
+        this.isAnimating = false;
+        this.animationTimeout = null; // Property to store timeout ID
+
         // Button event listeners
         this.setupButtonListeners();
         console.log("constructor");
@@ -30,36 +42,36 @@ class Nash_browser_game {
         document.getElementById('previous').addEventListener('click', () => this.previousStep());
         document.getElementById('next').addEventListener('click', () => this.nextStep());
         document.getElementById('play').addEventListener('click', () => this.toggleStartPause());
+        const slider = document.getElementById('slider');
         slider.oninput = (event) => {
-        this.currentStep = parseInt(event.target.value);
-        this.calculateMidTable();
-        document.getElementById("sliderValue").innerHTML = this.currentStep;
-        
-    };
+            this.currentStep = parseInt(event.target.value);
+            this.calculateMidTable();
+            document.getElementById("sliderValue").textContent = this.currentStep;
+        };
     }
 
     /**
      * Updates the colors of the cells in the table based on the current step of the game.
      */
     calculateMidTable() {
-      // Create a temporary table with the same dimensions as the game table
-      const tempTable = Array(this.nash_game.x).fill().map(() => Array(this.nash_game.y).fill().map(() => [0, 0]));
+        // Create a temporary table with the same dimensions as the game table
+        const tempTable = Array(this.nash_game.x).fill().map(() => Array(this.nash_game.y).fill().map(() => [0, 0]));
 
-      // Iterate through the steps array until the temporary step is equal to the current step
-      for (let tempStep = 0; tempStep < this.currentStep; tempStep++) {
-        const step = this.steps[tempStep];
-        tempTable[step.row][step.col][step.id] = step.color;
-      }
-
-      // Update the background color of each cell in the game table
-      for (let i = 0; i < this.nash_game.x; i++) {
-        for (let j = 0; j < this.nash_game.y; j++) {
-          const cell1 = document.getElementById(`cell-${i}-${j}-0`);
-          cell1.style.backgroundColor = this.getColor(tempTable[i][j][0]);
-          const cell2 = document.getElementById(`cell-${i}-${j}-1`);
-          cell2.style.backgroundColor = this.getColor(tempTable[i][j][1]);
+        // Iterate through the steps array until the temporary step is equal to the current step
+        for (let tempStep = 0; tempStep < this.currentStep; tempStep++) {
+            const step = this.steps[tempStep];
+            tempTable[step.row][step.col][step.id] = step.color;
         }
-      }
+
+        // Update the background color of each cell in the game table
+        for (let i = 0; i < this.nash_game.x; i++) {
+            for (let j = 0; j < this.nash_game.y; j++) {
+                const cell1 = document.getElementById(`cell-${i}-${j}-0`);
+                cell1.style.backgroundColor = this.getColor(tempTable[i][j][0]);
+                const cell2 = document.getElementById(`cell-${i}-${j}-1`);
+                cell2.style.backgroundColor = this.getColor(tempTable[i][j][1]);
+            }
+        }
     }
 
     // generate table to input user data based on the number of strategies of each player
@@ -103,8 +115,8 @@ class Nash_browser_game {
             const int1 = parseInt(parts[0], 10);
             const int2 = parseInt(parts[1], 10);
             return [int1, int2];
-        } else if (str.includes(',')) {
-            const parts = str.split(',');
+        } else if (str.includes(';')) {
+            const parts = str.split(';');
             const int1 = parseInt(parts[0], 10);
             const int2 = parseInt(parts[1], 10);
             return [int1, int2];
@@ -129,6 +141,7 @@ class Nash_browser_game {
             cell = row.insertCell();
             cell.colSpan = 2; // Span two columns
             cell.innerHTML = `Strategy ${i + 1}`;
+            cell.id = `Str ${i + 1}-0`;
         }
 
         for (let i = 0; i < this.nash_game.x; i++) {
@@ -137,6 +150,7 @@ class Nash_browser_game {
                 if (j === 0) {
                     let cell = row.insertCell();
                     cell.innerHTML = `Strategy ${i + 1}`;
+                    cell.id = `Str ${i + 1}-1`;
                 }
                 const values = this.read_cell(i, j);
                 let cell1 = row.insertCell();
@@ -155,37 +169,37 @@ class Nash_browser_game {
 
     // calculate stes aka the color of each cell
     // 0 = white, 1 = grey, 2 = yellow, 3 = blue, 4 = green
-    caculate_steps() {
-        console.log('caculate_steps');
+    calculate_steps() {
+        console.log('calculate_steps');
         this.steps = [];
         for (let col = 0; col < this.nash_game.y; col++) {
-                let max_values = this.read_cell(0, col);
-                let max_ids = [0];
-                for (let row = 0; row < this.nash_game.x; row++) {
-                    console.log(`row: ${row}, col: ${col},`);
-                    const values = this.read_cell(row, col);
-                    if (values[0] > max_values[0]) {
-                        max_values[0] = values[0];
-                        max_ids = [row];
-                    } else if (values[0] === max_values[0]) {
-                        max_ids.push(row);
-                    }
-                    this.steps.push({row: row, col: col, id:0, color: 1});
-                
+            let max_values = this.read_cell(0, col);
+            let max_ids = [0];
+            for (let row = 0; row < this.nash_game.x; row++) {
+                console.log(`row: ${row}, col: ${col},`);
+                const values = this.read_cell(row, col);
+                if (values[0] > max_values[0]) {
+                    max_values[0] = values[0];
+                    max_ids = [row];
+                } else if (values[0] === max_values[0]) {
+                    max_ids.push(row);
                 }
-    
-                for (let j of max_ids) {
-                    this.steps.push({row: j, col: col, id:0, color: 2});
-                    this.nash_game.optimal_choice[j][col][0] = 1;
-                    
-                }
-                for (let j = 0; j < this.nash_game.x; j++) {
-                    if (!max_ids.includes(j)) {
-                        this.steps.push({row: j, col: col, id:0, color: 0});
-                    }
+                this.steps.push({row: row, col: col, id: 0, color: 1});
+
+            }
+
+            for (let j of max_ids) {
+                this.steps.push({row: j, col: col, id: 0, color: 2});
+                this.nash_game.optimal_choice[j][col][0] = 1;
+
+            }
+            for (let j = 0; j < this.nash_game.x; j++) {
+                if (!max_ids.includes(j)) {
+                    this.steps.push({row: j, col: col, id: 0, color: 0});
                 }
             }
-    
+        }
+
         for (let i = 0; i < this.nash_game.x; i++) {
             let max_values = this.read_cell(i, 0);
             let max_ids = [0];
@@ -198,17 +212,17 @@ class Nash_browser_game {
                 } else if (values[1] === max_values[1]) {
                     max_ids.push(j);
                 }
-                this.steps.push({row: i, col: j, id:1, color: 1});
-                
+                this.steps.push({row: i, col: j, id: 1, color: 1});
+
             }
             for (let j of max_ids) {
-                this.steps.push({row: i, col: j, id:1, color: 3});
+                this.steps.push({row: i, col: j, id: 1, color: 3});
                 this.nash_game.optimal_choice[i][j][1] = 1;
-                
+
             }
             for (let j = 0; j < this.nash_game.y; j++) {
                 if (!max_ids.includes(j)) {
-                    this.steps.push({row: i, col: j, id:1, color: 0});
+                    this.steps.push({row: i, col: j, id: 1, color: 0});
                 }
             }
         }
@@ -218,8 +232,8 @@ class Nash_browser_game {
                 if (this.nash_game.optimal_choice[i][j][0] === 1 && this.nash_game.optimal_choice[i][j][1] === 1) {
                     this.nash_game.valid_x[i] = 1;
                     this.nash_game.valid_y[j] = 1;
-                    this.steps.push({row: i, col: j, id:0, color: 4});
-                    this.steps.push({row: i, col: j, id:1, color: 4});
+                    this.steps.push({row: i, col: j, id: 0, color: 4});
+                    this.steps.push({row: i, col: j, id: 1, color: 4});
                 }
             }
         }
@@ -230,18 +244,24 @@ class Nash_browser_game {
         this.maxSteps = this.steps.length;
         this.currentStep = 0;
         let slider = document.getElementById('slider');
+        this.isPaused = false;
         slider.max = this.maxSteps;
         slider.value = this.currentStep;
-}
+    }
 
 
     // iterate over the steps
-    async iterateSteps() {
-        while (this.currentStep < this.maxSteps && !this.isPaused) {
-            await this.updateStep();
+    iterateSteps() {
+        if (this.currentStep < this.maxSteps && !this.isPaused) {
+            this.updateStep();
             this.currentStep++;
+            this.animationTimeout = setTimeout(() => this.iterateSteps(), 500); // Continue to the next step after 500 ms
+        } else {
+            this.isAnimating = false; // Reset the flag when animation ends or is paused
+            clearTimeout(this.animationTimeout); // Ensure no lingering timeout calls
         }
     }
+
 
     // toggle between start and pause
     toggleStartPause() {
@@ -256,6 +276,8 @@ class Nash_browser_game {
         if (this.currentStep < this.maxSteps) {
             this.currentStep++;
             this.calculateMidTable();
+            document.getElementById("slider").value = this.currentStep;
+            document.getElementById("sliderValue").innerHTML = this.currentStep;
         }
     }
 
@@ -264,17 +286,18 @@ class Nash_browser_game {
         if (this.currentStep > 0) {
             this.currentStep--;
             this.calculateMidTable();
+            document.getElementById("slider").value = this.currentStep;
+            document.getElementById("sliderValue").innerHTML = this.currentStep;
         }
     }
 
     // update the step
-    async updateStep() {
+    updateStep() {
         const step = this.steps[this.currentStep];
         const cell = document.getElementById(`cell-${step.row}-${step.col}-${step.id}`);
         cell.style.backgroundColor = this.getColor(step.color);
         document.getElementById("sliderValue").innerHTML = this.currentStep;
         document.getElementById("slider").value = this.currentStep;
-        await this.sleep(500);
     }
 
     // get the color based on the number
@@ -318,10 +341,6 @@ class Nash_browser_game {
         }
     }
 
-    sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     loadPresetInput(preset) {
         for (let i = 0; i < preset.length; i++) {
             for (let j = 0; j < preset[0].length; j++) {
@@ -333,48 +352,55 @@ class Nash_browser_game {
 }
 
 let game = NaN;
+
 document.getElementById("generateTable").addEventListener("click", () => {
-    let x = parseInt(document.getElementById('player1Strategies').value);
-    let y = parseInt(document.getElementById('player2Strategies').value);
+    let x = parseInt(document.getElementById('player1Strategies').value, 10);
+    let y = parseInt(document.getElementById('player2Strategies').value, 10);
     let tableInput = document.getElementById('tableInput');
     let tableContainer = document.getElementById('tableContainer');
     game = new Nash_browser_game(x, y, tableInput, tableContainer);
     game.generate_table(x, y);
 });
 
-// RUN button
-document.getElementById("runNash").addEventListener("click", async () => {
-    game.generate_results_table(); // output table
-    game.caculate_steps(); // define color of table for each step
-    //// debug
-    // for (let i = 0; i < game.steps.length; i++) {
-    //     console.log(game.steps[i]);
-    // }
-    game.update_data(); // update all data according to the calculated steps
-    console.log("start iteration");
-    await game.iterateSteps(); // run the animation
+document.getElementById("runNash").addEventListener("click", () => {
+    if (game.isAnimating) {
+        clearTimeout(game.animationTimeout); // Clear the ongoing timeout if animation is in progress
+    }
+    game.isAnimating = true;
+    game.isPaused = false;
+    game.currentStep = 0;
+    game.generate_results_table();
+    game.calculate_steps();
+    game.update_data();
+    console.log("Animation restarted from the beginning.");
+    game.iterateSteps(); // Run the animation
 });
 
-document.getElementById('preset1').addEventListener('click', () => {
-    let x = presets.preset1.length;
-    let y = presets.preset1[0].length;
+function setupGameWithPreset(preset) {
+    let x = preset.length;
+    let y = preset[0].length;
     document.getElementById('player1Strategies').value = x;
     document.getElementById('player2Strategies').value = y;
     let tableInput = document.getElementById('tableInput');
     let tableContainer = document.getElementById('tableContainer');
+    tableContainer.innerHTML = '';
+    if (game.isAnimating) {
+        clearTimeout(game.animationTimeout); // Clear the ongoing timeout if animation is in progress
+    }
     game = new Nash_browser_game(x, y, tableInput, tableContainer);
     game.generate_table(x, y);
-    game.loadPresetInput(presets.preset1);
-});
+    game.loadPresetInput(preset);
+}
 
-document.getElementById('preset2').addEventListener('click', () => {
-    let x = presets.preset2.length;
-    let y = presets.preset2[0].length;
-    document.getElementById('player1Strategies').value = x;
-    document.getElementById('player2Strategies').value = y;
-    let tableInput = document.getElementById('tableInput');
-    let tableContainer = document.getElementById('tableContainer');
-    game = new Nash_browser_game(x, y, tableInput, tableContainer);
-    game.generate_table(x, y);
-    game.loadPresetInput(presets.preset2);
+const presetButtons = {
+    'preset1': presets.preset1,
+    'preset2': presets.preset2,
+    'preset3': presets.preset3,
+    'preset4': presets.preset4
+};
+
+Object.entries(presetButtons).forEach(([presetId, presetData]) => {
+    document.getElementById(presetId).addEventListener('click', () => {
+        setupGameWithPreset(presetData);
+    });
 });
