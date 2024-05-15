@@ -37,7 +37,7 @@
                 <li>Define the number of strategies of each player in corresponding input boxes.</li>
                 <li>Create a new table for input players' outcomes by clicking the Create/Clean button.</li>
                 <li>Fill the gaps in the table with values in the format like "val1/val2". For separation, "/" or ";"
-                    can be used.
+                    can be used. "Populate strategies" button will fill the table with random values automatically.
                 </li>
                 <li>OR use ready presets that have filled tables with different outcomes.</li>
                 <li>Press the RUN button to start visualization.</li>
@@ -58,6 +58,7 @@
             <input type="number" id="player2Strategies" name="player2Strategies" min="1" required value="1">
         </span>
         <input type="button" value="Create/Clean" id="generateTable">
+        <button id="fillRandom">Populate strategies</button>
         <div id="tableInput"></div>
         <div id="tableContainer"></div>
 
@@ -77,7 +78,7 @@
     <div id="right-column">
         <div class="box" style="height: 500px">
             <h2 style="margin-bottom: 20px">Actions</h2>
-            <div id=actions></div>
+            <div id=actions class="actions-container"></div>
         </div>
     </div>
 

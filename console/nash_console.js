@@ -1,5 +1,4 @@
 import {NashTable} from '../scripts/nash_table.js';
-
 import promptSync from 'prompt-sync';
 
 const prompt = promptSync();
@@ -15,7 +14,7 @@ class Nash_console_game {
         for (let i = 0; i < this.nash_game.x; i++) {
             let line = '';
             for (let j = 0; j < this.nash_game.y; j++) {
-                line += this.nash_game.get_value(i,j,0) + ',' + this.nash_game.get_value(i,j,0) + ' ';
+                line += this.nash_game.get_value(i, j, 0) + ',' + this.nash_game.get_value(i, j, 0) + ' ';
             }
             console.log(line);
         }
@@ -90,13 +89,13 @@ class Nash_console_game {
         }
         // do the same for the 2nd player
         for (let row = 0; row < this.nash_game.x; row++) {
-            max_val = this.nash_game.get_value(row, 0 ,1);
+            max_val = this.nash_game.get_value(row, 0, 1);
             max_ids = [0];
             for (let col = 1; col < this.nash_game.y; col++) {
-                if (this.nash_game.get_value(row, col,1)> max_val) {
-                    max_val = this.nash_game.get_value(row, col,1);
+                if (this.nash_game.get_value(row, col, 1) > max_val) {
+                    max_val = this.nash_game.get_value(row, col, 1);
                     max_ids = [col];
-                } else if (this.nash_game.get_value(row, col,1) === max_val) {
+                } else if (this.nash_game.get_value(row, col, 1) === max_val) {
                     max_ids.push(col);
                 }
             }
@@ -117,6 +116,7 @@ class Nash_console_game {
             }
         }
         console.log('Nash equilibrium at: ', nash);
+
         this.print_stats();
     }
 
