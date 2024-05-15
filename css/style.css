@@ -44,6 +44,7 @@ main {
     justify-content: space-between;
 }
 
+
 .inner {
     margin: auto;
     max-width: 612px;
@@ -83,7 +84,7 @@ main {
     text-align: center;
 }
 
-#center-column{
+#center-column {
     align-items: center;
 }
 
@@ -91,9 +92,14 @@ main {
     flex-basis: calc(25% - 20px);
 }
 
+#list-item {
+    margin: 10px;
+}
+
 #right-column {
     flex-basis: calc(25% - 20px);
 }
+
 
 .box {
     background-color: #ddd;
@@ -104,11 +110,13 @@ main {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    button{
+
+    button {
         margin: 5px;
         width: 200px;
     }
-    h5{
+
+    h5 {
         text-align: left;
     }
 }
@@ -133,7 +141,8 @@ table, th, td {
     border-collapse: collapse;
     padding: 5px;
     text-align: center;
-    input{
+
+    input {
         width: 50px;
     }
 }
@@ -142,11 +151,37 @@ th {
     background-color: #f2f2f2;
 }
 
-button{
+button {
     align-items: center;
     margin: 6px;
 }
 
-input{
+input {
     margin: 6px;
+}
+
+.actions-container {
+    height: calc(100% - 40px);
+    overflow-y: auto;
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+}
+
+.serial_dic {
+    display: flex;
+    flex-direction: column;
+}
+
+.left-zone, .right-zone {
+    flex-basis: calc(30% - 20px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+}
+
+.right-zone {
+    flex-basis: calc(70% - 20px);
 }

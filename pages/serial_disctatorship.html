@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css" type="text/css">
+    <title>Nash Equilibrium</title>
+</head>
+<body>
+
+<!--HEADER-->
+<header>
+    <div>
+        <a href="../index.html">
+            <img src="../images/logotip.png" alt="PocketMicro logo" width="100" height="100"
+                 style="position: absolute; top: 8px; left: 10px;">
+        </a>
+        <h1>PocketMicro</h1>
+        <h3>A tool for visualising microeconomics concepts</h3>
+    </div>
+</header>
+
+<main>
+    <!--MAIN CONTENT-->
+    <div class="left-zone">
+        <div class="box">
+            <label for="num_agents">Number of agents:</label><br>
+            <input type="number" id="num_agents" placeholder="Number of Agents">
+            <label for="num_items">Number of items:</label><br>
+            <input type="number" id="num_items" placeholder="Number of Items">
+            <button id="populateRandom">Populate Random</button>
+            <button id="run_algorithm">Run</button>
+            <button id="pause_resume">Pause/Resume</button>
+            <button id="clear">Clear all</button>
+            <button id="reset">Reset colors</button>
+        </div>
+        <div class="box">
+            <h2 style="margin-bottom: 20px">Tips</h2>
+            <ul style="text-align: left; margin: 0">
+                <li>Define the number of agents and items.</li>
+                <li>Press the Populate Random button to fill the table with random values or fill it yourself.</li>
+                <li>Press the RUN button to start the algorithm.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="right-zone">
+        <div id="preferences_table"></div>
+
+    </div>
+
+
+    <!--script goes to the end in order to load the page firstly-->
+    <script type="module" src="../browser/serial_dic_web.js"></script>
+</main>
+
+<!--FOOTER-->
+<footer>
+</footer>
+</body>
+</html>
