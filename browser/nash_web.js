@@ -21,6 +21,9 @@ const presets = {
     ],
 };
 
+function deepCopy(arr) {
+    return JSON.parse(JSON.stringify(arr));
+}
 
 class Nash_browser_game {
     constructor(x, y, tableInput, tableContainer, actions) {
@@ -39,18 +42,7 @@ class Nash_browser_game {
 
         // Button event listeners
         this.setupButtonListeners();
-        console.log("constructor");
     }
-
-
-    updateActions(action) {
-        let actionElement = document.createElement('div');
-        actionElement.textContent = action;
-        this.actionsContainer.appendChild(actionElement);
-        this.actionsContainer.scrollTop = this.actionsContainer.scrollHeight; // Scroll to the bottom of the container
-    }
-
-    Ô
 
     setupButtonListeners() {
         document.getElementById("fillRandom").addEventListener("click", this.fillTableWithRandomValues);
@@ -61,40 +53,22 @@ class Nash_browser_game {
         const slider = document.getElementById('slider');
         slider.oninput = (event) => {
             this.currentStep = parseInt(event.target.value);
-            this.calculateMidTable();
-            document.getElementById("sliderValue").textContent = this.currentStep;
+            this.updateStep();
+            document.getElementById("sliderValue").value = this.currentStep;
         };
-    }
-
-    /*
-     * Updates the colors of the cells in the table based on the current step of the game.
-     */
-    calculateMidTable() {
-        // Create a temporary table with the same dimensions as the game table
-        const tempTable = Array(this.nash_game.x).fill().map(() => Array(this.nash_game.y).fill().map(() => [0, 0]));
-
-        // Iterate through the steps array until the temporary step is equal to the current step
-        for (let tempStep = 0; tempStep < this.currentStep; tempStep++) {
-            const step = this.steps[tempStep];
-            tempTable[step.row][step.col][step.id] = step.color;
-        }
-
-        // Update the background color of each cell in the game table
-        for (let i = 0; i < this.nash_game.x; i++) {
-            for (let j = 0; j < this.nash_game.y; j++) {
-                const cell1 = document.getElementById(`cell-${i}-${j}-0`);
-                cell1.style.backgroundColor = this.getColor(tempTable[i][j][0]);
-                const cell2 = document.getElementById(`cell-${i}-${j}-1`);
-                cell2.style.backgroundColor = this.getColor(tempTable[i][j][1]);
+        document.getElementById('sliderValue').addEventListener('change', (event) => {
+            let num = parseInt(event.target.value);
+            if (num < 0 || num >= this.maxSteps) {
+                this.currentStep = 0;
+            } else {
+                this.currentStep = num;
             }
-        }
+            this.updateStep();
+            document.getElementById("slider").value = this.currentStep;
+        });
     }
 
-    /*
-    * Generate table to input user data based on the number of strategies of each player
-    */
     generate_table(x, y) {
-        console.log("generate_table");
         if (isNaN(x) || isNaN(y) || x < 1 || y < 1) {
             alert('Please enter valid numbers for both players strategies.');
             return;
@@ -125,10 +99,6 @@ class Nash_browser_game {
         this.tableInput.appendChild(table);
     }
 
-    /*
-    * Read cell from the table and return an array with the two values
-    */
-
     read_cell(i, j) {
         let str = document.getElementById(`cell-${i}-${j}`).value;
         if (str.includes('/')) {
@@ -146,11 +116,17 @@ class Nash_browser_game {
         }
     }
 
-    /*
-    * Generate the results table with the values from the input table
-    */
+    update_data() {
+        this.maxSteps = this.steps.length;
+        this.currentStep = 0;
+        let slider = document.getElementById('slider');
+        this.isPaused = false;
+        slider.max = this.maxSteps - 1;
+        slider.value = this.currentStep;
+        this.actionsContainer.innerHTML = '';
+    }
+
     generate_results_table() {
-        console.log('generate_results_table');
         this.tableContainer.innerHTML = '';
 
         const table = document.createElement('table');
@@ -190,21 +166,18 @@ class Nash_browser_game {
     }
 
 
-    /*
-    * Calculate stes aka the color of each cell
-    * 0 = white, 1 = grey, 2 = yellow, 3 = blue, 4 = green
-    */
     calculate_steps() {
-        console.log('calculate_steps');
         this.steps = [];
+        this.actions = [];
+        let temp_table = Array(this.nash_game.x).fill().map(() => Array(this.nash_game.y).fill().map(() => ['', '']));
+        this.steps.push(deepCopy(temp_table));
 
-        this.actions.push('Find optimal strategies for player 1:');
+        this.actions.push('Action I: Find optimal strategies for player 1:');
         for (let col = 0; col < this.nash_game.y; col++) {
-            this.actions.push(`Fix strategy ${col + 1} for P2:`);
+            this.actions.push(`Step ${2 * col + 1 + col}: Fix strategy ${col + 1} for P2 and compare outcomes of P1`);
             let max_values = this.read_cell(0, col);
             let max_ids = [0];
             for (let row = 0; row < this.nash_game.x; row++) {
-                this.actions.push(`Look at the outcome strategy ${row + 1} of P1`);
                 const values = this.read_cell(row, col);
                 if (values[0] > max_values[0]) {
                     max_values[0] = values[0];
@@ -212,33 +185,33 @@ class Nash_browser_game {
                 } else if (values[0] === max_values[0]) {
                     max_ids.push(row);
                 }
-                this.steps.push({row: row, col: col, id: 0, color: 1});
-
+                temp_table[row][col][0] = 'grey';
             }
+            this.steps.push(deepCopy(temp_table));
 
-            this.actions.push('The best strategy/ies for P1 are:');
-
+            this.actions.push(`Step ${3 * col + 2}-${3 * col + 3}: The best strategy/ies for P1 are:`);
             for (let j = 0; j < this.nash_game.x; j++) {
                 if (max_ids.includes(j)) {
-                    this.steps.push({row: j, col: col, id: 0, color: 2});
+                    temp_table[j][col][0] = 'yellow';
                     this.nash_game.optimal_choice[j][col][0] = 1;
                     this.actions.push(`${j + 1}`);
                 }
             }
+            this.steps.push(deepCopy(temp_table));
 
             for (let j = 0; j < this.nash_game.x; j++) {
                 if (!max_ids.includes(j)) {
-                    this.steps.push({row: j, col: col, id: 0, color: 0});
+                    temp_table[j][col][0] = '';
                 }
             }
+            this.steps.push(deepCopy(temp_table));
         }
-        this.actions.push('Find optimal strategies for player 2:');
+        this.actions.push(`Action II : Find optimal strategies for player 2:`);
         for (let i = 0; i < this.nash_game.x; i++) {
-            this.actions.push(`Fix strategy ${i + 1} for P1:`);
+            this.actions.push(`Step ${3 * (this.nash_game.y - 1) + 4 + 3 * i}: Fix strategy ${i + 1} for P1 and compare outcomes of P2`);
             let max_values = this.read_cell(i, 0);
             let max_ids = [0];
             for (let j = 0; j < this.nash_game.y; j++) {
-                this.actions.push(`Look at the outcome strategy ${j + 1} of P2`);
                 const values = this.read_cell(i, j);
                 if (values[1] > max_values[1]) {
                     max_values[1] = values[1];
@@ -246,56 +219,49 @@ class Nash_browser_game {
                 } else if (values[1] === max_values[1]) {
                     max_ids.push(j);
                 }
-                this.steps.push({row: i, col: j, id: 1, color: 1});
-
+                temp_table[i][j][1] = 'grey';
             }
+            this.steps.push(deepCopy(temp_table));
 
-            this.actions.push('The best strategy/ies for P2 are:');
-            for (let j = 0; j < this.nash_game.x; j++) {
+
+            this.actions.push(`Step ${3 * (this.nash_game.y - 1) + 5 + 3 * i}-${3 * (this.nash_game.y - 1) + 6 + 3 * i}: The best strategy/ies for P2 are:`);
+            for (let j = 0; j < this.nash_game.y; j++) {
                 if (max_ids.includes(j)) {
-                    this.steps.push({row: i, col: j, id: 1, color: 3});
+                    temp_table[i][j][1] = 'magenta';
                     this.nash_game.optimal_choice[i][j][1] = 1;
                     this.actions.push(`${j + 1}`);
                 }
             }
+            this.steps.push(deepCopy(temp_table));
 
             for (let j = 0; j < this.nash_game.y; j++) {
                 if (!max_ids.includes(j)) {
-                    this.steps.push({row: i, col: j, id: 1, color: 0});
+                    temp_table[i][j][1] = '';
                 }
             }
+            this.steps.push(deepCopy(temp_table));
         }
 
-        this.actions.push(`Strategies forming nash equilibrium:`);
+        this.actions.push(`Step ${this.steps.length}: Observe strategies forming Nash Equilibrium:`);
+        let numNash = 0;
         for (let i = 0; i < this.nash_game.x; i++) {
             for (let j = 0; j < this.nash_game.y; j++) {
                 if (this.nash_game.optimal_choice[i][j][0] === 1 && this.nash_game.optimal_choice[i][j][1] === 1) {
                     this.nash_game.valid_x[i] = 1;
                     this.nash_game.valid_y[j] = 1;
-                    this.steps.push({row: i, col: j, id: 0, color: 4});
-                    this.steps.push({row: i, col: j, id: 1, color: 4});
-                    this.actions.push(`${i + 1}; ${j + 1}`);
+                    temp_table[i][j][0] = '#53e553';
+                    temp_table[i][j][1] = '#53e553';
+                    this.actions.push(`P1: ${i + 1}; P2: ${j + 1}`);
+                    numNash++;
                 }
             }
         }
+        if (!numNash) {
+            this.actions.push('No Nash Equilibrium');
+        }
+        this.steps.push(deepCopy(temp_table));
     }
 
-    /*
-    * Update data according to the number of steps
-    */
-    update_data() {
-        this.maxSteps = this.steps.length;
-        this.currentStep = 0;
-        let slider = document.getElementById('slider');
-        this.isPaused = false;
-        slider.max = this.maxSteps;
-        slider.value = this.currentStep;
-    }
-
-
-    /*
-    * Iterate over the steps
-    */
     iterateSteps() {
         if (this.currentStep < this.maxSteps && !this.isPaused) {
             this.updateStep();
@@ -307,10 +273,6 @@ class Nash_browser_game {
         }
     }
 
-
-    /*
-    * Toggle between start and pause
-    */
     toggleStartPause() {
         this.isPaused = !this.isPaused;
         if (!this.isPaused) {
@@ -318,15 +280,16 @@ class Nash_browser_game {
         }
     }
 
+
     /*
     * Move to the next step
     */
     nextStep() {
         if (this.currentStep < this.maxSteps) {
             this.currentStep++;
-            this.calculateMidTable();
+            this.updateStep();
             document.getElementById("slider").value = this.currentStep;
-            document.getElementById("sliderValue").innerHTML = this.currentStep;
+            document.getElementById("sliderValue").value = this.currentStep;
         }
     }
 
@@ -336,9 +299,9 @@ class Nash_browser_game {
     previousStep() {
         if (this.currentStep > 0) {
             this.currentStep--;
-            this.calculateMidTable();
+            this.updateStep();
             document.getElementById("slider").value = this.currentStep;
-            document.getElementById("sliderValue").innerHTML = this.currentStep;
+            document.getElementById("sliderValue").value = this.currentStep;
         }
     }
 
@@ -346,32 +309,19 @@ class Nash_browser_game {
     * Update according to the current step
     */
     updateStep() {
-        const step = this.steps[this.currentStep];
-        const cell = document.getElementById(`cell-${step.row}-${step.col}-${step.id}`);
-        cell.style.backgroundColor = this.getColor(step.color);
-        document.getElementById("sliderValue").innerHTML = this.currentStep;
+        const step_colors = this.steps[this.currentStep];
+        for (let i = 0; i < this.nash_game.x; i++) {
+            for (let j = 0; j < this.nash_game.y; j++) {
+                const cell1 = document.getElementById(`cell-${i}-${j}-0`);
+                cell1.style.backgroundColor = step_colors[i][j][0];
+                const cell2 = document.getElementById(`cell-${i}-${j}-1`);
+                cell2.style.backgroundColor = step_colors[i][j][1];
+
+            }
+        }
+        document.getElementById("sliderValue").value = this.currentStep;
         document.getElementById("slider").value = this.currentStep;
     }
-
-    /*
-    * Get the color based on the number
-    */
-
-    getColor(color) {
-        switch (color) {
-            case 0:
-                return 'white';
-            case 1:
-                return 'grey';
-            case 2:
-                return 'yellow';
-            case 3:
-                return '#00b4ff';
-            case 4:
-                return 'green';
-        }
-    }
-
 
     loadPresetInput(preset) {
         for (let i = 0; i < preset.length; i++) {
@@ -381,8 +331,6 @@ class Nash_browser_game {
             }
         }
     }
-
-    function
 
     fillTableWithRandomValues() {
         if (!game) {
@@ -394,13 +342,19 @@ class Nash_browser_game {
 
         for (let i = 0; i < x; i++) {
             for (let j = 0; j < y; j++) {
-                const cellValue1 = Math.floor(Math.random() * 100); // Random number for Player 1
-                const cellValue2 = Math.floor(Math.random() * 100); // Random number for Player 2
+                const cellValue1 = Math.floor(Math.random() * 10); // Random number for Player 1
+                const cellValue2 = Math.floor(Math.random() * 10); // Random number for Player 2
                 document.getElementById(`cell-${i}-${j}`).value = `${cellValue1}/${cellValue2}`;
             }
         }
     }
 
+    updateActions(action) {
+        let actionElement = document.createElement('div');
+        actionElement.textContent = action;
+        this.actionsContainer.appendChild(actionElement);
+        this.actionsContainer.scrollTop = this.actionsContainer.scrollHeight; // Scroll to the bottom of the container
+    }
 }
 
 let game = NaN;
@@ -425,10 +379,8 @@ document.getElementById("runNash").addEventListener("click", () => {
     game.generate_results_table();
     game.calculate_steps();
     game.update_data();
-    console.log("Animation restarted from the beginning.");
     game.iterateSteps(); // Run the animation
     game.actions.forEach(action => game.updateActions(action));
-    console.log(game.actions);
 });
 
 function setupGameWithPreset(preset) {
@@ -460,3 +412,4 @@ Object.entries(presetButtons).forEach(([presetId, presetData]) => {
         setupGameWithPreset(presetData);
     });
 });
+
