@@ -11,12 +11,28 @@
 <!--HEADER-->
 <header>
     <div>
-        <a href="../index.html">
-            <img src="../images/logotip.png" alt="PocketMicro logo" width="100" height="100"
-                 style="position: absolute; top: 8px; left: 10px;">
-        </a>
-        <h1>PocketMicro</h1>
-        <h3>A tool for visualising microeconomics concepts</h3>
+        <div class="header-left">
+            <a href="../index.html">
+                <img src="../images/logotip.png" alt="PocketMicro logo" width="100" height="100">
+            </a>
+            <div class="header-text">
+                <h1>PocketMicro</h1>
+                <h3>A tool for visualising microeconomics concepts</h3>
+            </div>
+        </div>
+        <nav class="header-right">
+            <ul>
+                <li><a href="../index.html">Home</a></li>
+                <li class="dropdown">
+                    <a href="javascript:void(0)">Menu</a>
+                    <div class="dropdown-content">
+                        <a href="../pages/nash_eq.html">Nash equilibrium</a>
+                        <a href="../pages/serial_dictatorship.html">Serial dictatorship</a>
+                        <a href="../pages/house_allocation.html">House allocation TTC</a>
+                    </div>
+                </li>
+            </ul>
+        </nav>
     </div>
 </header>
 
@@ -36,6 +52,19 @@
                 <li>Define the number of agents by adding or removing them.</li>
                 <li>Press the Populate endowment/preferences to fill the corresponding table field.</li>
                 <li>Press the RUN button to start the algorithm.</li>
+                <li>Initially pairs <span style="color:lightblue;display: inline;">Player</span>:<span
+                        style="color:yellow;display: inline;">House</span> are displayed in a cycle shape.
+                </li>
+                <li>In <span style="color:blue;display: inline;">blue</span> are marked arrows pointing top available
+                    houses.
+                </li>
+                <li><span style="color:#fa6c6c; display: inline;">Red</span> arrows denotes the cycle formation.
+                    <span style="color:#fa6c6c; display: inline;">Red</span> cells in table show that house is not
+                    awailable more.
+
+                </li>
+                <li>Final allocation (houses in graph and table) is colored in <span
+                        style="color:#53e553; display: inline;">green</span>.
             </ul>
         </div>
     </div>
@@ -54,7 +83,11 @@
 </main>
 
 <!--FOOTER-->
-<footer>
+<footer style="text-align: center; padding: 20px">
+    <a href="https://github.com/Ripchic/pocket_micro" target="_blank" style="text-decoration: none; color: inherit;">
+        <img src="../images/git.png" alt="GitHub" style="vertical-align: middle; height: 50px"/>
+    </a>
+    <p style="margin: 10px 0 0; font-size: 16px; color: #d7d3d3;">Who gets what and why</p>
 </footer>
 </body>
 </html>

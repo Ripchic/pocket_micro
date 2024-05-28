@@ -14,7 +14,7 @@ class Nash_console_game {
         for (let i = 0; i < this.nash_game.x; i++) {
             let line = '';
             for (let j = 0; j < this.nash_game.y; j++) {
-                line += this.nash_game.get_value(i, j, 0) + ',' + this.nash_game.get_value(i, j, 0) + ' ';
+                line += this.nash_game.getValue(i, j, 0) + ',' + this.nash_game.getValue(i, j, 0) + ' ';
             }
             console.log(line);
         }
@@ -43,8 +43,8 @@ class Nash_console_game {
             const row = rows[i].split(' ');
             for (let j = 0; j < row.length; j++) {
                 const values = row[j].split(',');
-                this.nash_game.set_value(i, j, 0, Number(values[0]));
-                this.nash_game.set_value(i, j, 1, Number(values[1]));
+                this.nash_game.setValue(i, j, 0, Number(values[0]));
+                this.nash_game.setValue(i, j, 1, Number(values[1]));
             }
         }
     }
@@ -72,13 +72,13 @@ class Nash_console_game {
         let max_val = 0;
         let max_ids = [];
         for (let col = 0; col < this.nash_game.y; col++) {
-            max_val = this.nash_game.get_value(0, col, 0);
+            max_val = this.nash_game.getValue(0, col, 0);
             max_ids = [0];
             for (let row = 1; row < this.nash_game.x; row++) {
-                if (this.nash_game.get_value(row, col, 0) > max_val) {
-                    max_val = this.nash_game.get_value(row, col, 0);
+                if (this.nash_game.getValue(row, col, 0) > max_val) {
+                    max_val = this.nash_game.getValue(row, col, 0);
                     max_ids = [row];
-                } else if (this.nash_game.get_value(row, col, 0) === max_val) {
+                } else if (this.nash_game.getValue(row, col, 0) === max_val) {
                     max_ids.push(row);
                 }
             }
@@ -89,13 +89,13 @@ class Nash_console_game {
         }
         // do the same for the 2nd player
         for (let row = 0; row < this.nash_game.x; row++) {
-            max_val = this.nash_game.get_value(row, 0, 1);
+            max_val = this.nash_game.getValue(row, 0, 1);
             max_ids = [0];
             for (let col = 1; col < this.nash_game.y; col++) {
-                if (this.nash_game.get_value(row, col, 1) > max_val) {
-                    max_val = this.nash_game.get_value(row, col, 1);
+                if (this.nash_game.getValue(row, col, 1) > max_val) {
+                    max_val = this.nash_game.getValue(row, col, 1);
                     max_ids = [col];
-                } else if (this.nash_game.get_value(row, col, 1) === max_val) {
+                } else if (this.nash_game.getValue(row, col, 1) === max_val) {
                     max_ids.push(col);
                 }
             }
