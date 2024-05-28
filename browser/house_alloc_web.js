@@ -271,7 +271,7 @@ class HouseAllocation {
             if (cycleAgents.length === 1) {
                 const self = cycleAgents[0];
                 const {x, y} = this.getPositionOfParticipant(self[1]);
-                const selfArrowElem = selfArrow(x, y, "red", `self-arrow-${self}`);
+                const selfArrowElem = selfArrow(x, y, "#fa6c6c", `self-arrow-${self}`);
                 selfArrowElem.classList.add('arrow');
                 this.svgCanvas.appendChild(selfArrowElem);
                 await sleep(1000);
@@ -280,8 +280,8 @@ class HouseAllocation {
                 const p2 = cycleAgents[1];
                 const {x: x1, y: y1} = this.getPositionOfParticipant(p1[1]);
                 const {x: x2, y: y2} = this.getPositionOfParticipant(p2[1]);
-                const doubleArrowElem1 = doubleArrow(x1, y1, x2, y2, "red", centerX, centerY, `double-arrow-${p1}-${p2}`);
-                const doubleArrowElem2 = doubleArrow(x2, y2, x1, y1, "red", centerX, centerY, `double-arrow-${p2}-${p1}`);
+                const doubleArrowElem1 = doubleArrow(x1, y1, x2, y2, "#fa6c6c", centerX, centerY, `double-arrow-${p1}-${p2}`);
+                const doubleArrowElem2 = doubleArrow(x2, y2, x1, y1, "#fa6c6c", centerX, centerY, `double-arrow-${p2}-${p1}`);
                 doubleArrowElem1.classList.add('arrow');
                 doubleArrowElem2.classList.add('arrow');
                 this.svgCanvas.appendChild(doubleArrowElem1);
@@ -293,7 +293,7 @@ class HouseAllocation {
                     const nextParticipant = cycleAgents[(i + 1) % cycleAgents.length];
                     const {x: fx, y: fy} = this.getPositionOfParticipant(parseInt(participant.slice(1)));
                     const {x: tx, y: ty} = this.getPositionOfParticipant(parseInt(nextParticipant.slice(1)));
-                    const arrow = straightArrow(fx, fy, tx, ty, "red", centerX, centerY, `straight-arrow-${participant}-${nextParticipant}`);
+                    const arrow = straightArrow(fx, fy, tx, ty, "#fa6c6c", centerX, centerY, `straight-arrow-${participant}-${nextParticipant}`);
                     arrow.classList.add('arrow');
                     this.svgCanvas.appendChild(arrow);
                     await sleep(1000);
@@ -309,7 +309,7 @@ class HouseAllocation {
                 houseElem.remove();
 
                 const {x, y} = this.getPositionOfParticipant(parseInt(a.slice(1)));
-                const newHouse = houseIcon(x, y, h, "lightgreen", `house-${h.slice(1)}`);
+                const newHouse = houseIcon(x, y, h, "#53e553", `house-${h.slice(1)}`);
                 this.svgCanvas.appendChild(newHouse);
             });
 
@@ -360,10 +360,10 @@ class HouseAllocation {
             for (let j = 0; j < this.participants.length; j++) {
                 const cell = document.getElementById(`cell-${agentIndex}-${j}`);
                 if (parseInt(cell.value) === assignedHouse) {
-                    cell.style.backgroundColor = 'green';
+                    cell.style.backgroundColor = '#53e553';
                     break;
                 } else {
-                    cell.style.backgroundColor = 'orange';
+                    cell.style.backgroundColor = '#fa6c6c';
                 }
             }
         }

@@ -31,7 +31,7 @@ class Nash_browser_game {
         this.tableContainer = tableContainer; // Part on the web page to display final table with animation
         this.actionsContainer = actions; // Container for data with ifo about steps
         this.actions = []; // Storing log of main actions while iteration
-        this.nash_game = new NashTable(x, y);
+        this.nashGame = new NashTable(x, y);
         this.steps = []; // Info about changings in the resulting table
         this.maxSteps = 0;
         this.isPaused = false; // User pause status
@@ -68,7 +68,7 @@ class Nash_browser_game {
         });
     }
 
-    generate_table(x, y) {
+    generateTable(x, y) {
         if (isNaN(x) || isNaN(y) || x < 1 || y < 1) {
             alert('Please enter valid numbers for both players strategies.');
             return;
@@ -99,7 +99,7 @@ class Nash_browser_game {
         this.tableInput.appendChild(table);
     }
 
-    read_cell(i, j) {
+    readCell(i, j) {
         let str = document.getElementById(`cell-${i}-${j}`).value;
         if (str.includes('/')) {
             const parts = str.split('/');
@@ -116,7 +116,7 @@ class Nash_browser_game {
         }
     }
 
-    update_data() {
+    updateData() {
         this.maxSteps = this.steps.length;
         this.currentStep = 0;
         let slider = document.getElementById('slider');
@@ -126,7 +126,7 @@ class Nash_browser_game {
         this.actionsContainer.innerHTML = '';
     }
 
-    generate_results_table() {
+    generateResultsTable() {
         this.tableContainer.innerHTML = '';
 
         const table = document.createElement('table');
@@ -136,22 +136,22 @@ class Nash_browser_game {
         let row = thead.insertRow();
         let cell = row.insertCell();
         cell.innerHTML = 'Player 1 \\ Player 2';
-        for (let i = 0; i < this.nash_game.y; i++) {
+        for (let i = 0; i < this.nashGame.y; i++) {
             cell = row.insertCell();
             cell.colSpan = 2; // Span two columns
             cell.innerHTML = `Strategy ${i + 1}`;
             cell.id = `Str ${i + 1}-0`;
         }
 
-        for (let i = 0; i < this.nash_game.x; i++) {
+        for (let i = 0; i < this.nashGame.x; i++) {
             let row = tbody.insertRow();
-            for (let j = 0; j < this.nash_game.y; j++) {
+            for (let j = 0; j < this.nashGame.y; j++) {
                 if (j === 0) {
                     let cell = row.insertCell();
                     cell.innerHTML = `Strategy ${i + 1}`;
                     cell.id = `Str ${i + 1}-1`;
                 }
-                const values = this.read_cell(i, j);
+                const values = this.readCell(i, j);
                 let cell1 = row.insertCell();
                 cell1.innerHTML = values[0];
                 cell1.id = `cell-${i}-${j}-0`;
@@ -166,19 +166,19 @@ class Nash_browser_game {
     }
 
 
-    calculate_steps() {
+    calculateSteps() {
         this.steps = [];
         this.actions = [];
-        let temp_table = Array(this.nash_game.x).fill().map(() => Array(this.nash_game.y).fill().map(() => ['', '']));
+        let temp_table = Array(this.nashGame.x).fill().map(() => Array(this.nashGame.y).fill().map(() => ['', '']));
         this.steps.push(deepCopy(temp_table));
 
         this.actions.push('Action I: Find optimal strategies for player 1:');
-        for (let col = 0; col < this.nash_game.y; col++) {
+        for (let col = 0; col < this.nashGame.y; col++) {
             this.actions.push(`Step ${2 * col + 1 + col}: Fix strategy ${col + 1} for P2 and compare outcomes of P1`);
-            let max_values = this.read_cell(0, col);
+            let max_values = this.readCell(0, col);
             let max_ids = [0];
-            for (let row = 0; row < this.nash_game.x; row++) {
-                const values = this.read_cell(row, col);
+            for (let row = 0; row < this.nashGame.x; row++) {
+                const values = this.readCell(row, col);
                 if (values[0] > max_values[0]) {
                     max_values[0] = values[0];
                     max_ids = [row];
@@ -190,16 +190,16 @@ class Nash_browser_game {
             this.steps.push(deepCopy(temp_table));
 
             this.actions.push(`Step ${3 * col + 2}-${3 * col + 3}: The best strategy/ies for P1 are:`);
-            for (let j = 0; j < this.nash_game.x; j++) {
+            for (let j = 0; j < this.nashGame.x; j++) {
                 if (max_ids.includes(j)) {
                     temp_table[j][col][0] = 'yellow';
-                    this.nash_game.optimal_choice[j][col][0] = 1;
+                    this.nashGame.optimal_choice[j][col][0] = 1;
                     this.actions.push(`${j + 1}`);
                 }
             }
             this.steps.push(deepCopy(temp_table));
 
-            for (let j = 0; j < this.nash_game.x; j++) {
+            for (let j = 0; j < this.nashGame.x; j++) {
                 if (!max_ids.includes(j)) {
                     temp_table[j][col][0] = '';
                 }
@@ -207,12 +207,12 @@ class Nash_browser_game {
             this.steps.push(deepCopy(temp_table));
         }
         this.actions.push(`Action II : Find optimal strategies for player 2:`);
-        for (let i = 0; i < this.nash_game.x; i++) {
-            this.actions.push(`Step ${3 * (this.nash_game.y - 1) + 4 + 3 * i}: Fix strategy ${i + 1} for P1 and compare outcomes of P2`);
-            let max_values = this.read_cell(i, 0);
+        for (let i = 0; i < this.nashGame.x; i++) {
+            this.actions.push(`Step ${3 * (this.nashGame.y - 1) + 4 + 3 * i}: Fix strategy ${i + 1} for P1 and compare outcomes of P2`);
+            let max_values = this.readCell(i, 0);
             let max_ids = [0];
-            for (let j = 0; j < this.nash_game.y; j++) {
-                const values = this.read_cell(i, j);
+            for (let j = 0; j < this.nashGame.y; j++) {
+                const values = this.readCell(i, j);
                 if (values[1] > max_values[1]) {
                     max_values[1] = values[1];
                     max_ids = [j];
@@ -224,17 +224,17 @@ class Nash_browser_game {
             this.steps.push(deepCopy(temp_table));
 
 
-            this.actions.push(`Step ${3 * (this.nash_game.y - 1) + 5 + 3 * i}-${3 * (this.nash_game.y - 1) + 6 + 3 * i}: The best strategy/ies for P2 are:`);
-            for (let j = 0; j < this.nash_game.y; j++) {
+            this.actions.push(`Step ${3 * (this.nashGame.y - 1) + 5 + 3 * i}-${3 * (this.nashGame.y - 1) + 6 + 3 * i}: The best strategy/ies for P2 are:`);
+            for (let j = 0; j < this.nashGame.y; j++) {
                 if (max_ids.includes(j)) {
                     temp_table[i][j][1] = 'magenta';
-                    this.nash_game.optimal_choice[i][j][1] = 1;
+                    this.nashGame.optimal_choice[i][j][1] = 1;
                     this.actions.push(`${j + 1}`);
                 }
             }
             this.steps.push(deepCopy(temp_table));
 
-            for (let j = 0; j < this.nash_game.y; j++) {
+            for (let j = 0; j < this.nashGame.y; j++) {
                 if (!max_ids.includes(j)) {
                     temp_table[i][j][1] = '';
                 }
@@ -244,11 +244,11 @@ class Nash_browser_game {
 
         this.actions.push(`Step ${this.steps.length}: Observe strategies forming Nash Equilibrium:`);
         let numNash = 0;
-        for (let i = 0; i < this.nash_game.x; i++) {
-            for (let j = 0; j < this.nash_game.y; j++) {
-                if (this.nash_game.optimal_choice[i][j][0] === 1 && this.nash_game.optimal_choice[i][j][1] === 1) {
-                    this.nash_game.valid_x[i] = 1;
-                    this.nash_game.valid_y[j] = 1;
+        for (let i = 0; i < this.nashGame.x; i++) {
+            for (let j = 0; j < this.nashGame.y; j++) {
+                if (this.nashGame.optimal_choice[i][j][0] === 1 && this.nashGame.optimal_choice[i][j][1] === 1) {
+                    this.nashGame.valid_x[i] = 1;
+                    this.nashGame.valid_y[j] = 1;
                     temp_table[i][j][0] = '#53e553';
                     temp_table[i][j][1] = '#53e553';
                     this.actions.push(`P1: ${i + 1}; P2: ${j + 1}`);
@@ -310,8 +310,8 @@ class Nash_browser_game {
     */
     updateStep() {
         const step_colors = this.steps[this.currentStep];
-        for (let i = 0; i < this.nash_game.x; i++) {
-            for (let j = 0; j < this.nash_game.y; j++) {
+        for (let i = 0; i < this.nashGame.x; i++) {
+            for (let j = 0; j < this.nashGame.y; j++) {
                 const cell1 = document.getElementById(`cell-${i}-${j}-0`);
                 cell1.style.backgroundColor = step_colors[i][j][0];
                 const cell2 = document.getElementById(`cell-${i}-${j}-1`);
@@ -366,7 +366,7 @@ document.getElementById("generateTable").addEventListener("click", () => {
     let tableContainer = document.getElementById('tableContainer');
     let actions = document.getElementById('actions');
     game = new Nash_browser_game(x, y, tableInput, tableContainer, actions);
-    game.generate_table(x, y);
+    game.generateTable(x, y);
 });
 
 document.getElementById("runNash").addEventListener("click", () => {
@@ -376,9 +376,9 @@ document.getElementById("runNash").addEventListener("click", () => {
     game.isAnimating = true;
     game.isPaused = false;
     game.currentStep = 0;
-    game.generate_results_table();
-    game.calculate_steps();
-    game.update_data();
+    game.generateResultsTable();
+    game.calculateSteps();
+    game.updateData();
     game.iterateSteps(); // Run the animation
     game.actions.forEach(action => game.updateActions(action));
 });
@@ -396,7 +396,7 @@ function setupGameWithPreset(preset) {
         clearTimeout(game.animationTimeout); // Clear the ongoing timeout if animation is in progress
     }
     game = new Nash_browser_game(x, y, tableInput, tableContainer, actions);
-    game.generate_table(x, y);
+    game.generateTable(x, y);
     game.loadPresetInput(preset);
 }
 
