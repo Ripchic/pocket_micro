@@ -8,22 +8,31 @@ class SerialDictWeb {
         this.isPaused = false;
         this.isAnimating = false;
         this.animationTimeout = null;
+        this.delay = 500; // Default speed in milliseconds
 
         // Buttons and event listeners
         this.pauseResumeButton = document.getElementById('pause_resume');
         this.clearButton = document.getElementById('clear');
         this.resetButton = document.getElementById('reset');
         this.populateRandomButton = document.getElementById('populateRandom');
+        this.speedSlider = document.getElementById('speedSlider');
+        this.speedValueText = document.getElementById('speedValueText');
 
         this.numAgentsInput.addEventListener('input', () => this.generateTable());
         this.numItemsInput.addEventListener('input', () => this.generateTable());
         this.populateRandomButton.addEventListener('click', () => this.populateRandom());
         this.pauseResumeButton.addEventListener('click', () => {
             this.toggleStartPause();
-            this.pauseResumeButton.innerHTML = this.isPaused ? 'Resume' : 'Pause'
+            this.pauseResumeButton.innerHTML = this.isPaused ? 'Resume' : 'Pause';
         });
         this.clearButton.addEventListener('click', () => this.clear());
         this.resetButton.addEventListener('click', () => this.reset());
+        this.speedSlider.addEventListener('input', () => this.updateSpeed());
+    }
+
+    updateSpeed() {
+        this.delay = parseInt(this.speedSlider.value, 10);
+        this.speedValueText.innerHTML = `${this.delay} ms`;
     }
 
     // Generate the table based on the number of agents and items
@@ -72,7 +81,6 @@ class SerialDictWeb {
     }
 
     // Populate the table with random values
-
     populateRandom() {
         // Read the number of agents and items from the input fields
         const numAgents = parseInt(this.numAgentsInput.value, 10);
@@ -147,7 +155,7 @@ class SerialDictWeb {
         if (!this.isPaused && this.currentStep < this.steps.length) {
             this.updateStep();
             this.currentStep++;
-            this.animationTimeout = setTimeout(() => this.iterateSteps(), 500);
+            this.animationTimeout = setTimeout(() => this.iterateSteps(), this.delay);
         } else {
             this.isAnimating = false;
             clearTimeout(this.animationTimeout);
@@ -161,7 +169,6 @@ class SerialDictWeb {
             this.iterateSteps();
         }
     }
-
 
     // Clear the table and reset the steps
     clear() {

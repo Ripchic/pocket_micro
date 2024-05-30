@@ -41,6 +41,7 @@ class Nash_browser_game {
         this.animationTimeout = null; // Property to store timeout ID
 
         // Button event listeners
+        this.delay = 500; // Default delay in ms
         this.setupButtonListeners();
     }
 
@@ -49,7 +50,10 @@ class Nash_browser_game {
 
         document.getElementById('previous').addEventListener('click', () => this.previousStep());
         document.getElementById('next').addEventListener('click', () => this.nextStep());
-        document.getElementById('play').addEventListener('click', () => this.toggleStartPause());
+        document.getElementById('play').addEventListener('click', () => {
+            this.toggleStartPause();
+            document.getElementById('play').textContent = this.isPaused ? 'Resume' : 'Pause';
+        });
         const slider = document.getElementById('slider');
         slider.oninput = (event) => {
             this.currentStep = parseInt(event.target.value);
@@ -66,6 +70,12 @@ class Nash_browser_game {
             this.updateStep();
             document.getElementById("slider").value = this.currentStep;
         });
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValueText = document.getElementById('speedValueText');
+        speedSlider.oninput = (event) => {
+            this.delay = parseInt(event.target.value);
+            speedValueText.textContent = `${this.delay} ms`;
+        };
     }
 
     generateTable(x, y) {
@@ -266,7 +276,7 @@ class Nash_browser_game {
         if (this.currentStep < this.maxSteps && !this.isPaused) {
             this.updateStep();
             this.currentStep++;
-            this.animationTimeout = setTimeout(() => this.iterateSteps(), 500); // Continue to the next step after 500 ms
+            this.animationTimeout = setTimeout(() => this.iterateSteps(), this.delay); // Use the delay value from the slider
         } else {
             this.isAnimating = false; // Reset the flag when animation ends or is paused
             clearTimeout(this.animationTimeout); // Ensure no lingering timeout calls
