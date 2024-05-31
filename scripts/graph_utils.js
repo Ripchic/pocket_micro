@@ -31,7 +31,7 @@ export class Graph {
 }
 
 // cycleVertex detection when it is guaranteed that there is a cycleVertex in the graph
-export function anycycleVertex(G) {
+export function anyCycle(G) {
     // Set to keep track of visited vertices
     const visited = new Set();
     // Start with a random vertex
