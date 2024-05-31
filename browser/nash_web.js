@@ -21,10 +21,17 @@ const presets = {
     ],
 };
 
+// Function to create a deep copy of an array
 function deepCopy(arr) {
     return JSON.parse(JSON.stringify(arr));
 }
 
+/**
+ * Nash_browser_game class represents a browser-based game for demonstrating Nash equilibrium on a wep page.
+ * It contains the game's table input to read user data, table container to visualise te algorithm,
+ * actions container to display text version of actions, and other game-related properties.
+ * It also includes methods for setting up the game, reading and updating game data, and handling user interactions.
+ */
 class Nash_browser_game {
     constructor(x, y, tableInput, tableContainer, actions) {
         this.tableInput = tableInput; // To read user data input
@@ -32,19 +39,22 @@ class Nash_browser_game {
         this.actionsContainer = actions; // Container for data with ifo about steps
         this.actions = []; // Storing log of main actions while iteration
         this.nashGame = new NashTable(x, y);
-        this.steps = []; // Info about changings in the resulting table
-        this.maxSteps = 0;
+        this.steps = []; // Contains copies of the table for each step
+        this.maxSteps = 0; // Number of steps in the game
         this.isPaused = false; // User pause status
         this.currentStep = 0;
 
         this.isAnimating = false;
         this.animationTimeout = null; // Property to store timeout ID
+        this.delay = 500; // Default delay in ms
 
         // Button event listeners
-        this.delay = 500; // Default delay in ms
         this.setupButtonListeners();
     }
 
+    /**
+     * Set up event listeners for the buttons
+     */
     setupButtonListeners() {
         document.getElementById("fillRandom").addEventListener("click", this.fillTableWithRandomValues);
 
@@ -60,6 +70,7 @@ class Nash_browser_game {
             this.updateStep();
             document.getElementById("sliderValue").value = this.currentStep;
         };
+        // Slider value input parser and listener to update the slider value on change
         document.getElementById('sliderValue').addEventListener('change', (event) => {
             let num = parseInt(event.target.value);
             if (num < 0 || num >= this.maxSteps) {
@@ -78,22 +89,31 @@ class Nash_browser_game {
         };
     }
 
+    /**
+     * Generate a table based on the number of strategies for each player
+     * Used to create the table where user can input the game data
+     * @param x - number of strategies for player 1 == number of rows
+     * @param y - number of strategies for player 2 == number of columns
+     */
     generateTable(x, y) {
         if (isNaN(x) || isNaN(y) || x < 1 || y < 1) {
             alert('Please enter valid numbers for both players strategies.');
             return;
         }
-        this.tableInput.innerHTML = '';
+        this.tableInput.innerHTML = ''; // Clear the table input container
         const table = document.createElement('table');
         const thead = table.createTHead();
         const tbody = table.createTBody();
         let row = thead.insertRow();
         let cell = row.insertCell();
+        // Create the first cell in the header row
         cell.innerHTML = 'Player 1 \\ Player 2';
+        // Create the rest of the header cells
         for (let i = 0; i < y; i++) {
             cell = row.insertCell();
             cell.innerHTML = `Strategy ${i + 1}`;
         }
+        // Create the rest of the table rows in format |Strategy i| input | input | ...
         for (let i = 0; i < x; i++) {
             row = tbody.insertRow();
             for (let j = 0; j <= y; j++) {
@@ -109,6 +129,12 @@ class Nash_browser_game {
         this.tableInput.appendChild(table);
     }
 
+    /** Read the values from the table input
+     * Used to read the values from the table input
+     * @param i
+     * @param j
+     * @returns {number[]|void}
+     */
     readCell(i, j) {
         let str = document.getElementById(`cell-${i}-${j}`).value;
         if (str.includes('/')) {
@@ -126,6 +152,9 @@ class Nash_browser_game {
         }
     }
 
+    /**
+     * Used to update the data in the game, based on calculated steps and reset to the initial state
+     */
     updateData() {
         this.maxSteps = this.steps.length;
         this.currentStep = 0;
@@ -136,6 +165,11 @@ class Nash_browser_game {
         this.actionsContainer.innerHTML = '';
     }
 
+    /**
+     * Used to generate the final table, where the animation will be displayed
+     * The same idea of creating table is applied, the only difference is that
+     * in 1 column are spanned 2 cells for better visualisation perception.
+     */
     generateResultsTable() {
         this.tableContainer.innerHTML = '';
 
@@ -176,6 +210,12 @@ class Nash_browser_game {
     }
 
 
+    /**
+     * The main method to calculate the steps of the game
+     * It is based on the algorithm for finding Nash equilibrium
+     * The steps are stored in the steps array, which is used for the animation
+     * The actions are stored in the actions array, which is used to display the text version of the steps
+     */
     calculateSteps() {
         this.steps = [];
         this.actions = [];
@@ -187,6 +227,8 @@ class Nash_browser_game {
             this.actions.push(`Step ${2 * col + 1 + col}: Fix strategy ${col + 1} for P2 and compare outcomes of P1`);
             let max_values = this.readCell(0, col);
             let max_ids = [0];
+            // Find the best strategy for player 1 when player 2 plays strategy col (fixed)
+            // The best response is the highest value in the column
             for (let row = 0; row < this.nashGame.x; row++) {
                 const values = this.readCell(row, col);
                 if (values[0] > max_values[0]) {
@@ -198,7 +240,7 @@ class Nash_browser_game {
                 temp_table[row][col][0] = 'grey';
             }
             this.steps.push(deepCopy(temp_table));
-
+            // Highlight the best strategy/strategies for player 1
             this.actions.push(`Step ${3 * col + 2}-${3 * col + 3}: The best strategy/ies for P1 are:`);
             for (let j = 0; j < this.nashGame.x; j++) {
                 if (max_ids.includes(j)) {
@@ -209,6 +251,7 @@ class Nash_browser_game {
             }
             this.steps.push(deepCopy(temp_table));
 
+            // Remove the highlighting for not optimal strategies
             for (let j = 0; j < this.nashGame.x; j++) {
                 if (!max_ids.includes(j)) {
                     temp_table[j][col][0] = '';
@@ -216,6 +259,7 @@ class Nash_browser_game {
             }
             this.steps.push(deepCopy(temp_table));
         }
+        // Repeat the same process for player 2
         this.actions.push(`Action II : Find optimal strategies for player 2:`);
         for (let i = 0; i < this.nashGame.x; i++) {
             this.actions.push(`Step ${3 * (this.nashGame.y - 1) + 4 + 3 * i}: Fix strategy ${i + 1} for P1 and compare outcomes of P2`);
@@ -252,6 +296,7 @@ class Nash_browser_game {
             this.steps.push(deepCopy(temp_table));
         }
 
+        // Find the Nash Equilibrium by observing the strategies that are optimal for both players
         this.actions.push(`Step ${this.steps.length}: Observe strategies forming Nash Equilibrium:`);
         let numNash = 0;
         for (let i = 0; i < this.nashGame.x; i++) {
@@ -272,8 +317,11 @@ class Nash_browser_game {
         this.steps.push(deepCopy(temp_table));
     }
 
+    // Iterate through the steps and update the table
+    // This method is called to animate the steps
     iterateSteps() {
         if (this.currentStep < this.maxSteps && !this.isPaused) {
+            // Update the table with the data of the current step
             this.updateStep();
             this.currentStep++;
             this.animationTimeout = setTimeout(() => this.iterateSteps(), this.delay); // Use the delay value from the slider
@@ -283,6 +331,7 @@ class Nash_browser_game {
         }
     }
 
+    // Used to conrol pause and resume functional during animtion
     toggleStartPause() {
         this.isPaused = !this.isPaused;
         if (!this.isPaused) {
@@ -292,7 +341,7 @@ class Nash_browser_game {
 
 
     /*
-    * Move to the next step
+    * Move to the next step by increasing the current step and updating the table
     */
     nextStep() {
         if (this.currentStep < this.maxSteps) {
@@ -316,10 +365,11 @@ class Nash_browser_game {
     }
 
     /*
-    * Update according to the current step
+    * Update the visualisation of the table based on the current step
     */
     updateStep() {
         const step_colors = this.steps[this.currentStep];
+        // Iterate through the table and update the colors of the cells based on the current step
         for (let i = 0; i < this.nashGame.x; i++) {
             for (let j = 0; j < this.nashGame.y; j++) {
                 const cell1 = document.getElementById(`cell-${i}-${j}-0`);
@@ -333,6 +383,7 @@ class Nash_browser_game {
         document.getElementById("slider").value = this.currentStep;
     }
 
+    // Load the preset input values into the table
     loadPresetInput(preset) {
         for (let i = 0; i < preset.length; i++) {
             for (let j = 0; j < preset[0].length; j++) {
@@ -342,6 +393,7 @@ class Nash_browser_game {
         }
     }
 
+    // Used to populate the table with random values
     fillTableWithRandomValues() {
         if (!game) {
             alert("Please generate a table first!");
@@ -359,6 +411,7 @@ class Nash_browser_game {
         }
     }
 
+    // Used to display the actions in the actions container
     updateActions(action) {
         let actionElement = document.createElement('div');
         actionElement.textContent = action;
@@ -367,8 +420,9 @@ class Nash_browser_game {
     }
 }
 
-let game = NaN;
+let game = NaN; // Game object
 
+// Event listeners for the buttons used to setup and control the game
 document.getElementById("generateTable").addEventListener("click", () => {
     let x = parseInt(document.getElementById('player1Strategies').value, 10);
     let y = parseInt(document.getElementById('player2Strategies').value, 10);

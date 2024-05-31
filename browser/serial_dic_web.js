@@ -1,3 +1,13 @@
+/**
+ * SerialDictWeb class represents a web-based implementation of the Serial Dictatorship algorithm.
+ * It contains properties related to the game state, such as the current step, the list of steps, and the delay between steps.
+ * It also contains properties related to the game interface, such as the table container and various buttons and inputs.
+ * The class includes methods for handling user interactions, updating the game state, and animating the algorithm.
+ *
+ * @param {HTMLInputElement} playerNumInput - The input element for the number of players.
+ * @param {HTMLInputElement} itemNumInput - The input element for the number of items.
+ * @param {HTMLElement} tableContainer - The container element for the game table.
+ */
 class SerialDictWeb {
     constructor(playerNumInput, itemNumInput, tableContainer) {
         this.tableContainer = tableContainer;
@@ -28,8 +38,11 @@ class SerialDictWeb {
         this.clearButton.addEventListener('click', () => this.clear());
         this.resetButton.addEventListener('click', () => this.reset());
         this.speedSlider.addEventListener('input', () => this.updateSpeed());
+
+        this.generateTable(); // Generate the table to add the event listeners of the rows
     }
 
+    // Update the speed value based on the slider position
     updateSpeed() {
         this.delay = parseInt(this.speedSlider.value, 10);
         this.speedValueText.innerHTML = `${this.delay} ms`;
@@ -64,6 +77,13 @@ class SerialDictWeb {
         // Create rows for each player and their preferences
         for (let i = 0; i < numAgents; i++) {
             row = tbody.insertRow();
+            // Add event listeners for drag and drop functionality
+            row.draggable = true;
+            row.addEventListener('dragstart', this.handleDragStart.bind(this));
+            row.addEventListener('dragover', this.handleDragOver.bind(this));
+            row.addEventListener('drop', this.handleDrop.bind(this));
+            row.addEventListener('dragend', this.handleDragEnd.bind(this));
+
             cell = row.insertCell();
             cell.innerHTML = `Player ${i + 1}`;
             for (let j = 0; j < numItems; j++) {
@@ -80,13 +100,63 @@ class SerialDictWeb {
         this.tableContainer.appendChild(table);
     }
 
-    // Populate the table with random values
+    handleDragStart(e) {
+        e.target.style.opacity = '0.3';
+        this.draggedRow = e.target;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', e.target.outerHTML);
+    }
+
+    handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    }
+
+    handleDrop(e) {
+        e.preventDefault(); // Prevent the default action
+        e.stopPropagation(); // Stop the event from bubbling up when overlapped
+
+        if (this.draggedRow !== e.target) {
+            const draggedIndex = Array.from(this.tableContainer.querySelectorAll('tbody tr')).indexOf(this.draggedRow);
+            const droppedIndex = Array.from(this.tableContainer.querySelectorAll('tbody tr')).indexOf(e.target.closest('tr'));
+            // Insert the dragged row before or after the dropped row based on the position
+            if (draggedIndex < droppedIndex) {
+                e.target.closest('tr').parentNode.insertBefore(this.draggedRow, e.target.closest('tr').nextSibling);
+            } else {
+                e.target.closest('tr').parentNode.insertBefore(this.draggedRow, e.target.closest('tr'));
+            }
+
+            this.updateRowIds();
+            this.readData();
+        }
+    }
+
+    handleDragEnd(e) {
+        e.target.style.opacity = '1';
+        this.draggedRow = null;
+    }
+
+
+    // Update the input IDs based on the row and cell indices
+    // This is necessary for drag and drop functionality
+    updateRowIds() {
+        const rows = this.tableContainer.querySelectorAll('tbody tr');
+        rows.forEach((row, rowIndex) => {
+            const inputs = row.querySelectorAll('.item-input');
+            inputs.forEach((input, cellIndex) => {
+                input.id = `cell-${rowIndex}-${cellIndex}`;
+            });
+        });
+    }
+
+
+    // Populate the table with random references
     populateRandom() {
         // Read the number of agents and items from the input fields
         const numAgents = parseInt(this.numAgentsInput.value, 10);
         const numItems = parseInt(this.numItemsInput.value, 10);
 
-        // Iterate over each cell in the table and populate it with a random value
+        // Iterate over each cell in the table and populate it with a random value without duplicates
         for (let i = 0; i < numAgents; i++) {
             let availableItems = Array.from({length: numItems}, (_, index) => index + 1);
             for (let j = 0; j < numItems; j++) {
@@ -170,7 +240,7 @@ class SerialDictWeb {
         }
     }
 
-    // Clear the table and reset the steps
+    // Completely clear the table
     clear() {
         this.steps = [];
         const numAgents = parseInt(this.numAgentsInput.value, 10);
@@ -187,7 +257,7 @@ class SerialDictWeb {
         }
     }
 
-    // Reset the table and steps
+    // Clear the colors in the table and reset the current step (prepare for a new run with same data)
     reset() {
         this.currentStep = 0;
         this.isPaused = false;
