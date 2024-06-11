@@ -1,3 +1,11 @@
+// Description:
+// This file contains functions to create SVG elements for visualizing the graph in house allocation problem.
+
+/** Used to ease the creation of SVG elements with attributes
+ * @param tag
+ * @param attributes
+ * @returns {Element} SVG element
+ */
 export function createSvgElement(tag, attributes) {
     const svgns = 'http://www.w3.org/2000/svg';
     const element = document.createElementNS(svgns, tag);
@@ -8,8 +16,17 @@ export function createSvgElement(tag, attributes) {
 }
 
 
+/**
+ * @param x position
+ * @param y position
+ * @param text to be displayed in the house
+ * @param color of the house
+ * @param id of the element
+ * @returns {Element} a group forming a house icon
+ */
 export function houseIcon(x, y, text, color, id) {
     const houseGroup = createSvgElement('g', {id});
+    // Create a rectangle forming the foundation of the house
     const house = createSvgElement('rect', {
         x: x,
         y: y,
@@ -17,22 +34,26 @@ export function houseIcon(x, y, text, color, id) {
         height: 20,
         fill: color
     });
+    // Create a triangle forming the roof of the house using polygons to for it
     const roof = createSvgElement('polygon', {
-        points: `${x},${y} ${x + 30},${y} ${x + 15},${y - 20}`,
+        points: `${x},${y} ${x + 30},${y} ${x + 15},${y - 20}`, // position of the points
         fill: color
     });
+    // Add a text to the house
     const textElement = createSvgElement('text', {
         x: x + 15,
         y: y + 19,
         'text-anchor': 'middle'
     });
     textElement.textContent = text;
-
+    // Create a group combining all the elements
     houseGroup.append(house, roof, textElement);
 
     return houseGroup;
 }
 
+// Create a person icon
+// It is using the same logic as the house icon
 export function personIcon(x, y, text, color, id) {
     const personGroup = createSvgElement('g', {id});
     const head = createSvgElement('circle', {
@@ -56,7 +77,8 @@ export function personIcon(x, y, text, color, id) {
     return personGroup;
 }
 
-
+// Arrow that points from the person to the house that he owns
+// Both person and house are located in the same coordinates (x, y)
 export function selfArrow(x, y, color, id) {
     const arrowGroup = createSvgElement('g', {id});
     const path = createSvgElement('path', {
@@ -75,8 +97,11 @@ export function selfArrow(x, y, color, id) {
 }
 
 
+// Arrow that points from the person to the house that is the most desired
+// Used when the person is included in a cycle with length > 2 or then the person is not included in any cycle
 export function straightArrow(fx, fy, tx, ty, color, cnvCenterX, cnvCenterY, id) {
 
+    // Adjust the coordinates of the arrow to reduce overlapping with the person and house icons
     if (fy > cnvCenterY) {
         fy -= 30;
     }
@@ -99,6 +124,7 @@ export function straightArrow(fx, fy, tx, ty, color, cnvCenterX, cnvCenterY, id)
         stroke: color
     });
 
+    //That crazy math is to calculate the angle of the arrow
     const angle = Math.atan2(ty - fy, tx - fx);
     const arrowLength = 10;
     const x1 = tx - arrowLength * Math.cos(angle - Math.PI / 6);
@@ -114,6 +140,10 @@ export function straightArrow(fx, fy, tx, ty, color, cnvCenterX, cnvCenterY, id)
     return arrowGroup;
 }
 
+// Arrow that points from the person to the house that is the most desired
+// Used when the person is included in a cycle with length = 2
+// Consists of two arrows, not to overlap straight ones
+// Uses the same logic as the straight arrow
 export function doubleArrow(fx, fy, tx, ty, color, cnvCenterX, cnvCenterY, id) {
 
     if (fy > cnvCenterY) {
