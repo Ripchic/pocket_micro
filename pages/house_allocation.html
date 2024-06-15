@@ -45,6 +45,12 @@
             <button id="populateEndowments">Populate endowment</button>
             <button id="populatePreferences">Populate preferences</button>
             <button id="run_algorithm">Run</button>
+            <button id="StopResume">Stop/Resume</button>
+            <button id="prev_step">Previous</button>
+            <button id="next_step">Next</button>
+            <label for="speedSlider">Animation Speed (s):</label>
+            <input type="range" id="speedSlider" min="100" max="10000" value="2000" step="100">
+            <span id="speedValueText">2s</span>
         </div>
         <div class="box">
             <h2 style="margin-bottom: 20px">Tips</h2>
@@ -52,8 +58,8 @@
                 <li>Define the number of agents by adding or removing them.</li>
                 <li>Press the Populate endowment/preferences to fill the corresponding table field.</li>
                 <li>Press the RUN button to start the algorithm.</li>
-                <li>Initially pairs <span style="color:lightblue;display: inline;">Player</span>:<span
-                        style="color:yellow;display: inline;">House</span> are displayed in a cycle shape.
+                <li>Initially pairs <span style="color:#419aff;display: inline;">Player</span>:<span
+                        style="color:magenta;display: inline;">House</span> are displayed in a cycle shape.
                 </li>
                 <li>In <span style="color:blue;display: inline;">blue</span> are marked arrows pointing top available
                     houses.
